@@ -39,7 +39,7 @@ define([
      * @constructor
      *
      * @param {Object} options Object with the following properties:
-     * @param {String} options.url The WMTS server url.
+     * @param {String|Array} options.url The WMTS server url or an array of url (for load balancing).
      * @param {String} [options.format='image/jpeg'] The MIME type for images to retrieve from the server.
      * @param {String} options.layer The layer name for WMTS requests.
      * @param {String} options.style The style name for WMTS requests.
@@ -136,7 +136,12 @@ define([
     });
 
     function buildImageUrl(imageryProvider, col, row, level) {
-        var uri = new Uri(imageryProvider._url);
+        var uri = imageryProvider._url;
+        if (typeof uri !== 'string') {
+          imageryProvider._lastSelectedUrl = ((imageryProvider._lastSelectedUrl || 0) + 1) % uri.length;
+          uri = uri[imageryProvider._lastSelectedUrl];
+        }
+        uri = new Uri(uri);
         var queryOptions = queryToObject(defaultValue(uri.query, ''));
         var labels;
 
